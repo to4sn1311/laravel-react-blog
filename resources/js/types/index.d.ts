@@ -40,3 +40,29 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Post {
+    id: number;
+    title: string;
+    slug: string;
+    content: string;
+    excerpt: string | null;
+    featured_image: string | null;
+    published: boolean;
+    user_id: number;
+    published_at: string | null;
+    created_at: string;
+    updated_at: string;
+    user?: User;
+}
+
+export interface PageProps {
+    auth: {
+        user: User;
+    };
+    errors: Record<string, string>;
+    flash: {
+        message?: string;
+        error?: string;
+    };
+}
