@@ -17,12 +17,20 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface PostsPageProps extends PageProps {
     posts: {
         data: Post[];
-        links: any;
+        links: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
         meta: {
             current_page: number;
             from: number;
             last_page: number;
-            links: any[];
+            links: Array<{
+                url: string | null;
+                label: string;
+                active: boolean;
+            }>;
             path: string;
             per_page: number;
             to: number;
@@ -31,7 +39,7 @@ interface PostsPageProps extends PageProps {
     };
 }
 
-export default function Index({ auth, posts, flash }: PostsPageProps) {
+export default function Index({ posts }: PostsPageProps) {
     const handleDelete = (id: number) => {
         if (confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
             router.delete(route('posts.destroy', id));

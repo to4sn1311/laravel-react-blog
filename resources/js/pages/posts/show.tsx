@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { Post, PageProps } from '@/types';
-import Button from '@/components/ui/button';
+// import Button from '@/components/ui/button';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -23,7 +23,7 @@ interface ShowProps extends PageProps {
     post: Post;
 }
 
-export default function Show({ auth, post }: ShowProps) {
+export default function Show({ post }: ShowProps) {
     const handleDelete = () => {
         if (confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
             router.delete(route('posts.destroy', post.id));
@@ -39,20 +39,25 @@ export default function Show({ auth, post }: ShowProps) {
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h1 className="text-3xl font-bold">{post.title}</h1>
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                                 <Link
                                     href={route('posts.index')}
-                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
                                 >
                                     Quay lại
                                 </Link>
                                 <Link
                                     href={route('posts.edit', post.id)}
-                                    className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+                                    className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition-colors"
                                 >
                                     Chỉnh sửa
                                 </Link>
-                                <Button onClick={handleDelete}>Xóa</Button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                                >
+                                    Xóa
+                                </button>
                             </div>
                         </div>
 
@@ -88,13 +93,13 @@ export default function Show({ auth, post }: ShowProps) {
                             {post.excerpt && (
                                 <div className="mb-6">
                                     <h3 className="text-xl font-semibold mb-2">Tóm tắt</h3>
-                                    <p className="text-gray-700 italic">{post.excerpt}</p>
+                                    <p className="text-white italic">{post.excerpt}</p>
                                 </div>
                             )}
 
                             <div className="prose max-w-full">
                                 <h3 className="text-xl font-semibold mb-2">Nội dung</h3>
-                                <div className="whitespace-pre-wrap text-gray-700">{post.content}</div>
+                                <div className="whitespace-pre-wrap text-white">{post.content}</div>
                             </div>
                         </div>
                     </div>

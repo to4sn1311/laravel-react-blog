@@ -5,28 +5,30 @@ import { FormEvent } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Trang chủ',
         href: '/dashboard',
     },
     {
-        title: 'New Post',
+        title: 'Bài viết',
+        href: '/posts',
+    },
+    {
+        title: 'Tạo mới',
         href: '/posts/create',
     },
 ];
 
 export default function CreatePost() {
-    const { data, setData, post, processing, errors } = useForm<{
+    const { data, setData, post, processing, errors, progress } = useForm<{
         title: string;
         content: string;
         excerpt: string;
-        author: string;
         featured_image: File | null;
         published: boolean;
     }>({
         title: '',
         content: '',
         excerpt: '',
-        author: '',
         featured_image: null,
         published: false
     });
@@ -38,16 +40,16 @@ export default function CreatePost() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Post" />
+            <Head title="Tạo bài viết mới" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="border-sidebar-border/70 dark:border-sidebar-border flex-1 overflow-hidden rounded-xl border">
                     <div className="p-6">
-                        <h1 className="text-3xl font-bold mb-6">Create New Post</h1>
+                        <h1 className="text-3xl font-bold mb-6">Tạo bài viết mới</h1>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
                             <div>
                                 <label htmlFor="title" className="block text-sm font-medium mb-1">
-                                    Title
+                                    Tiêu đề
                                 </label>
                                 <input
                                     type="text"
@@ -61,22 +63,8 @@ export default function CreatePost() {
                             </div>
 
                             <div>
-                                <label htmlFor="author" className="block text-sm font-medium mb-1">
-                                    Author
-                                </label>
-                                <input
-                                    type="text"
-                                    id="author"
-                                    value={data.author}
-                                    onChange={e => setData('author', e.target.value)}
-                                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
-                                />
-                                {errors.author && <div className="text-red-500 text-sm mt-1">{errors.author}</div>}
-                            </div>
-
-                            <div>
                                 <label htmlFor="content" className="block text-sm font-medium mb-1">
-                                    Content
+                                    Nội dung
                                 </label>
                                 <textarea
                                     id="content"
@@ -91,7 +79,7 @@ export default function CreatePost() {
 
                             <div>
                                 <label htmlFor="excerpt" className="block text-sm font-medium mb-1">
-                                    Excerpt (optional)
+                                    Tóm tắt (không bắt buộc)
                                 </label>
                                 <textarea
                                     id="excerpt"
@@ -105,15 +93,23 @@ export default function CreatePost() {
 
                             <div>
                                 <label htmlFor="featured_image" className="block text-sm font-medium mb-1">
-                                    Featured Image (optional)
+                                    Ảnh bìa (không bắt buộc)
                                 </label>
                                 <input
                                     type="file"
                                     id="featured_image"
                                     onChange={e => setData('featured_image', e.target.files?.[0] || null)}
                                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                                    accept="image/*"
                                 />
                                 {errors.featured_image && <div className="text-red-500 text-sm mt-1">{errors.featured_image}</div>}
+
+                                {/* Hiển thị thanh tiến trình khi upload file */}
+                                {progress && (
+                                    <progress value={progress.percentage} max="100" className="w-full h-2 mt-2">
+                                        {progress.percentage}%
+                                    </progress>
+                                )}
                             </div>
 
                             <div className="flex items-center">
@@ -125,7 +121,7 @@ export default function CreatePost() {
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
                                 <label htmlFor="published" className="ml-2 block text-sm">
-                                    Publish immediately
+                                    Xuất bản ngay
                                 </label>
                             </div>
 
@@ -135,7 +131,7 @@ export default function CreatePost() {
                                     disabled={processing}
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md shadow-sm disabled:opacity-70"
                                 >
-                                    {processing ? 'Creating...' : 'Create Post'}
+                                    {processing ? 'Đang tạo...' : 'Tạo bài viết'}
                                 </button>
                             </div>
                         </form>

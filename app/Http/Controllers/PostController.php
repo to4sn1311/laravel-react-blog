@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
@@ -42,19 +43,29 @@ class PostController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'excerpt' => 'nullable|string',
-            'featured_image' => 'nullable|string',
+            'featured_image' => 'nullable|image|max:2048', // Thay đổi thành file ảnh, giới hạn 2MB
             'published' => 'nullable|boolean',
         ]);
 
-        $post = new Post($validated);
-        $post->user_id = Auth::id();
-        $post->slug = Str::slug($request->title);
+        // Xử lý slug
+        $validated['slug'] = Str::slug($request->title);
 
-        if ($request->published && !$post->published_at) {
-            $post->published_at = now();
+        // Xử lý file upload nếu có
+        if ($request->hasFile('featured_image')) {
+            $path = $request->file('featured_image')->store('post-images', 'public');
+            $validated['featured_image'] = Storage::url($path);
         }
 
-        $post->save();
+        // Xử lý ngày đăng
+        if ($request->published) {
+            $validated['published_at'] = now();
+        }
+
+        // Thêm user_id
+        $validated['user_id'] = Auth::id();
+
+        // Lưu bài viết
+        Post::create($validated);
 
         return redirect()->route('posts.index')
             ->with('message', 'Bài viết đã được tạo thành công!');
@@ -88,10 +99,10 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title' => 'string|max:255',
+            'content' => 'string',
             'excerpt' => 'nullable|string',
-            'featured_image' => 'nullable|string',
+            'featured_image' => 'nullable|image|max:2048', // Thay đổi thành file ảnh, giới hạn 2MB
             'published' => 'nullable|boolean',
             'slug' => [
                 'nullable',
@@ -100,14 +111,35 @@ class PostController extends Controller
             ],
         ]);
 
-        if ($request->has('title') && (!$request->has('slug') || empty($request->slug))) {
-            $validated['slug'] = Str::slug($request->title);
+        // Xử lý slug nếu không được cung cấp
+        // if (empty($validated['slug'])) {
+        //     $validated['slug'] = Str::slug($validated['title']);
+        // }
+
+        // Xử lý file upload nếu có
+        if ($request->hasFile('featured_image')) {
+            // Xóa ảnh cũ nếu tồn tại
+            if ($post->featured_image) {
+                $oldPath = str_replace('/storage/', '', $post->featured_image);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+
+            // Lưu ảnh mới
+            $path = $request->file('featured_image')->store('post-images', 'public');
+            $validated['featured_image'] = Storage::url($path);
+        } else {
+            // Giữ nguyên ảnh cũ (loại bỏ khỏi dữ liệu được xác thực)
+            unset($validated['featured_image']);
         }
 
+        // Xử lý ngày đăng
         if ($request->published && !$post->published_at) {
             $validated['published_at'] = now();
         }
 
+        // Cập nhật bài viết
         $post->update($validated);
 
         return redirect()->route('posts.index')
@@ -119,6 +151,15 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        // Xóa ảnh liên kết nếu có
+        if ($post->featured_image) {
+            $imagePath = str_replace('/storage/', '', $post->featured_image);
+            if (Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
+        }
+
+        // Xóa bài viết
         $post->delete();
 
         return redirect()->route('posts.index')
